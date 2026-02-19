@@ -215,12 +215,14 @@ async function handlePhotoRemove(photoId: string) {
   margin: 0 0 var(--space-3);
   display: grid;
   gap: var(--space-1);
+  min-width: 0;
 }
 
 .details-meta-row {
   display: flex;
   gap: var(--space-2);
   align-items: baseline;
+  min-width: 0;
 }
 
 .details-meta-row dt {
@@ -231,6 +233,7 @@ async function handlePhotoRemove(photoId: string) {
 
 .details-meta-row dd {
   margin: 0;
+  min-width: 0;
 }
 
 .instructions-list {

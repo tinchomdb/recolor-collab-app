@@ -23,6 +23,7 @@ defineProps<Props>();
   border-radius: var(--radius-md);
   padding: var(--space-4);
   margin-bottom: var(--space-4);
+  overflow: hidden;
 }
 
 .panel-header {

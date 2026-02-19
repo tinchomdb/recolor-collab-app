@@ -45,6 +45,7 @@ onMounted(() => {
 
 .content {
   flex: 1;
+  min-width: 0;
   padding: var(--space-4);
 }
 
