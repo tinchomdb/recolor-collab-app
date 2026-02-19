@@ -1,0 +1,100 @@
+:root {
+  --font-family-base: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  /* Font sizes */
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line heights */
+  --line-height-none: 1;
+  --line-height-tight: 1.2;
+  --line-height-body: 1.5;
+
+  /* Composite font tokens */
+  --font-heading-1: var(--font-weight-bold) var(--font-size-2xl) /
+    var(--line-height-none) var(--font-family-base);
+  --font-body: var(--font-weight-normal) var(--font-size-md) /
+    var(--line-height-body) var(--font-family-base);
+  --font-body-sm: var(--font-weight-normal) var(--font-size-sm) /
+    var(--line-height-body) var(--font-family-base);
+  --font-label: var(--font-weight-semibold) var(--font-size-sm) /
+    var(--line-height-body) var(--font-family-base);
+
+  --color-bg-page: #f7f7f8;
+  --color-bg-surface: #ffffff;
+  --color-bg-muted: #f2f3f5;
+  --color-text-primary: #1b1f24;
+  --color-text-secondary: #4f5a65;
+  --color-text-inverse: #ffffff;
+  --color-border-default: #dcdfe4;
+  --color-accent: #2f6feb;
+  --color-accent-hover: #1f57c5;
+  --color-error: #b42318;
+  --color-success: #1a7f37;
+  --color-warning: #9a6700;
+  --color-backdrop: rgba(0, 0, 0, 0.35);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  --border-width-default: 1px;
+  --border-width-none: 0;
+
+  --border-default: var(--border-width-default) solid
+    var(--color-border-default);
+  --border-none: var(--border-width-none) solid transparent;
+
+  --outline-focus: 2px solid var(--color-accent);
+  --outline-focus-offset: 2px;
+
+  --opacity-disabled: 0.6;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --sidebar-width: 240px;
+
+  /* Breakpoints (used in JS; CSS @media must use raw values) */
+  --breakpoint-mobile: 900px;
+
+  /* Form inputs */
+  --input-min-width: 200px;
+
+  /* Timeline */
+  --timeline-border-width: 2px;
+  --timeline-dot-size: 8px;
+  --timeline-dot-border-width: 2px;
+  --timeline-rail-offset: 7px;
+  --timeline-dot-top-nudge: 4px;
+  --opacity-muted: 0.5;
+  --transition-duration-fast: 0.2s;
+  --transition-duration-normal: 0.25s;
+}
+
+:root.dark {
+  --color-bg-page: #161b22;
+  --color-bg-surface: #1c2128;
+  --color-bg-muted: #272e37;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-inverse: #1b1f24;
+  --color-border-default: #373e47;
+  --color-accent: #4493f8;
+  --color-accent-hover: #58a6ff;
+  --color-error: #f85149;
+  --color-success: #3fb950;
+  --color-warning: #d29922;
+  --color-backdrop: rgba(0, 0, 0, 0.6);
+}
