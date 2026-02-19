@@ -455,4 +455,221 @@ describe("Recolour API", () => {
       expect(ticket.partner).toBe("Studio Beta");
     }
   });
+
+  // ── Photo endpoints ──────────────────────────────────────────────────
+
+  it("allows partner to upload a photo to an In Progress ticket", async () => {
+    const app = createApp();
+
+    const created = await authPost(app, "/api/tickets").send({
+      style: "15370300",
+      priority: "Medium",
+      partner: "Studio Beta",
+      instructions: ["Photo test"],
+      referencePhotos: testPhotos("15370300_001"),
+    });
+    const id = created.body.id;
+
+    await authPost(app, `/api/tickets/${id}/send`);
+    await authPost(app, `/api/tickets/${id}/receipt`, AUTH_PARTNER_BETA);
+    await authPost(app, `/api/tickets/${id}/start`, AUTH_PARTNER_BETA);
+
+    const upload = await authPost(
+      app,
+      `/api/tickets/${id}/photos`,
+      AUTH_PARTNER_BETA,
+    ).send({
+      imageData: Buffer.from("fake-image").toString("base64"),
+      thumbnailData: Buffer.from("fake-thumb").toString("base64"),
+      fileName: "test-photo.jpg",
+    });
+
+    expect(upload.status).toBe(201);
+    expect(upload.body).toHaveProperty("id");
+    expect(upload.body).toHaveProperty("imageUrl");
+    expect(upload.body).toHaveProperty("thumbnailUrl");
+    expect(upload.body.label).toBe("test-photo.jpg");
+  });
+
+  it("rejects photo upload with invalid file extension", async () => {
+    const app = createApp();
+
+    const created = await authPost(app, "/api/tickets").send({
+      style: "15370301",
+      priority: "Medium",
+      partner: "Studio Beta",
+      instructions: ["Photo ext test"],
+      referencePhotos: testPhotos("15370301_001"),
+    });
+    const id = created.body.id;
+
+    await authPost(app, `/api/tickets/${id}/send`);
+    await authPost(app, `/api/tickets/${id}/receipt`, AUTH_PARTNER_BETA);
+    await authPost(app, `/api/tickets/${id}/start`, AUTH_PARTNER_BETA);
+
+    const upload = await authPost(
+      app,
+      `/api/tickets/${id}/photos`,
+      AUTH_PARTNER_BETA,
+    ).send({
+      imageData: Buffer.from("fake").toString("base64"),
+      thumbnailData: Buffer.from("fake").toString("base64"),
+      fileName: "test.gif",
+    });
+
+    expect(upload.status).toBe(400);
+  });
+
+  it("rejects photo upload when ticket is not In Progress", async () => {
+    const app = createApp();
+
+    const created = await authPost(app, "/api/tickets").send({
+      style: "15370302",
+      priority: "Medium",
+      partner: "Studio Beta",
+      instructions: ["Not started yet"],
+      referencePhotos: testPhotos("15370302_001"),
+    });
+    const id = created.body.id;
+
+    // Ticket is still Pending — send it but don't start
+    await authPost(app, `/api/tickets/${id}/send`);
+
+    const upload = await authPost(
+      app,
+      `/api/tickets/${id}/photos`,
+      AUTH_PARTNER_BETA,
+    ).send({
+      imageData: Buffer.from("fake").toString("base64"),
+      thumbnailData: Buffer.from("fake").toString("base64"),
+      fileName: "photo.jpg",
+    });
+
+    expect(upload.status).toBe(409);
+  });
+
+  it("rejects photo upload from manager (partner-only route)", async () => {
+    const app = createApp();
+
+    const created = await authPost(app, "/api/tickets").send({
+      style: "15370303",
+      priority: "Medium",
+      partner: "Studio Beta",
+      instructions: ["Manager upload attempt"],
+      referencePhotos: testPhotos("15370303_001"),
+    });
+    const id = created.body.id;
+
+    await authPost(app, `/api/tickets/${id}/send`);
+    await authPost(app, `/api/tickets/${id}/receipt`, AUTH_PARTNER_BETA);
+    await authPost(app, `/api/tickets/${id}/start`, AUTH_PARTNER_BETA);
+
+    const upload = await authPost(
+      app,
+      `/api/tickets/${id}/photos`,
+      AUTH_MANAGER,
+    ).send({
+      imageData: Buffer.from("fake").toString("base64"),
+      thumbnailData: Buffer.from("fake").toString("base64"),
+      fileName: "photo.jpg",
+    });
+
+    expect(upload.status).toBe(403);
+  });
+
+  it("allows partner to delete an uploaded photo", async () => {
+    const app = createApp();
+
+    const created = await authPost(app, "/api/tickets").send({
+      style: "15370304",
+      priority: "Medium",
+      partner: "Studio Beta",
+      instructions: ["Delete photo test"],
+      referencePhotos: testPhotos("15370304_001"),
+    });
+    const id = created.body.id;
+
+    await authPost(app, `/api/tickets/${id}/send`);
+    await authPost(app, `/api/tickets/${id}/receipt`, AUTH_PARTNER_BETA);
+    await authPost(app, `/api/tickets/${id}/start`, AUTH_PARTNER_BETA);
+
+    const upload = await authPost(
+      app,
+      `/api/tickets/${id}/photos`,
+      AUTH_PARTNER_BETA,
+    ).send({
+      imageData: Buffer.from("fake-image").toString("base64"),
+      thumbnailData: Buffer.from("fake-thumb").toString("base64"),
+      fileName: "to-delete.jpg",
+    });
+
+    const photoId = upload.body.id;
+
+    const del = await request(app)
+      .delete(`/api/tickets/${id}/photos/${photoId}`)
+      .set("Authorization", AUTH_PARTNER_BETA);
+
+    expect(del.status).toBe(204);
+
+    // Verify photo is gone from the ticket
+    const ticket = await authGet(app, `/api/tickets/${id}`, AUTH_PARTNER_BETA);
+    const photoIds = ticket.body.partnerPhotos.map((p: { id: string }) => p.id);
+    expect(photoIds).not.toContain(photoId);
+  });
+
+  it("returns 404 when deleting a non-existent photo", async () => {
+    const app = createApp();
+
+    const created = await authPost(app, "/api/tickets").send({
+      style: "15370305",
+      priority: "Medium",
+      partner: "Studio Beta",
+      instructions: ["Missing photo delete"],
+      referencePhotos: testPhotos("15370305_001"),
+    });
+    const id = created.body.id;
+
+    await authPost(app, `/api/tickets/${id}/send`);
+    await authPost(app, `/api/tickets/${id}/receipt`, AUTH_PARTNER_BETA);
+    await authPost(app, `/api/tickets/${id}/start`, AUTH_PARTNER_BETA);
+
+    const del = await request(app)
+      .delete(`/api/tickets/${id}/photos/nonexistent`)
+      .set("Authorization", AUTH_PARTNER_BETA);
+
+    expect(del.status).toBe(404);
+  });
+
+  // ── Edge cases ───────────────────────────────────────────────────────
+
+  it("returns 404 when updating a non-existent ticket", async () => {
+    const app = createApp();
+
+    const res = await authPut(app, "/api/tickets/999999").send({
+      instructions: ["Updated"],
+    });
+
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 404 when partner accesses a ticket they do not own", async () => {
+    const app = createApp();
+
+    const created = await authPost(app, "/api/tickets").send({
+      style: "15370400",
+      priority: "Medium",
+      partner: "Studio Gamma",
+      instructions: ["Gamma ticket"],
+      referencePhotos: testPhotos("15370400_001"),
+    });
+    const id = created.body.id;
+
+    // Send so it's visible to partners
+    await authPost(app, `/api/tickets/${id}/send`);
+
+    // Studio Beta tries to access Studio Gamma's ticket
+    const res = await authGet(app, `/api/tickets/${id}`, AUTH_PARTNER_BETA);
+
+    expect(res.status).toBe(404);
+  });
 });

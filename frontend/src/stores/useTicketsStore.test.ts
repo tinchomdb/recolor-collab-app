@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ref } from "vue";
-import { Role } from "@shared/constants";
+import { Role, Priority } from "@shared/constants";
 import { useTicketsStore } from "./useTicketsStore";
 
 const emptyMeta = { columns: [], filters: [], sortOptions: [] };
@@ -25,6 +25,8 @@ const apiMocks = vi.hoisted(() => ({
   approveTicket: vi.fn(),
   rejectTicket: vi.fn(),
   updateTicket: vi.fn(),
+  uploadPartnerPhoto: vi.fn(),
+  deletePartnerPhoto: vi.fn(),
 }));
 
 vi.mock("../utils/api/tickets.api", () => ({
@@ -41,6 +43,8 @@ vi.mock("../utils/api/tickets.api", () => ({
   approveTicket: apiMocks.approveTicket,
   rejectTicket: apiMocks.rejectTicket,
   updateTicket: apiMocks.updateTicket,
+  uploadPartnerPhoto: apiMocks.uploadPartnerPhoto,
+  deletePartnerPhoto: apiMocks.deletePartnerPhoto,
 }));
 
 describe("useTicketsStore", () => {
@@ -217,7 +221,7 @@ describe("useTicketsStore", () => {
 
       const payload = {
         style: "Night Sky",
-        priority: "High",
+        priority: Priority.High,
         partner: "Alpha",
         instructions: ["Do this"],
         referencePhotos: [
@@ -257,6 +261,55 @@ describe("useTicketsStore", () => {
       apiMocks.sendTicket.mockResolvedValue({});
       await store.send("t1");
       expect(store.error.value).toBe("");
+    });
+
+    it("calls uploadPartnerPhoto with ticket id and file", async () => {
+      apiMocks.uploadPartnerPhoto.mockResolvedValue({});
+      const store = useTicketsStore();
+
+      const file = new File(["content"], "photo.jpg", { type: "image/jpeg" });
+      await store.uploadPhoto("t1", file);
+
+      expect(apiMocks.uploadPartnerPhoto).toHaveBeenCalledWith("t1", file);
+      expect(store.error.value).toBe("");
+    });
+
+    it("calls deletePartnerPhoto with ticket id and photo id", async () => {
+      apiMocks.deletePartnerPhoto.mockResolvedValue({});
+      const store = useTicketsStore();
+
+      await store.removePhoto("t1", "photo-1");
+
+      expect(apiMocks.deletePartnerPhoto).toHaveBeenCalledWith("t1", "photo-1");
+      expect(store.error.value).toBe("");
+    });
+
+    it("sets error when uploadPhoto fails", async () => {
+      apiMocks.uploadPartnerPhoto.mockRejectedValue(new Error("Upload failed"));
+      const store = useTicketsStore();
+
+      const file = new File(["content"], "photo.jpg", { type: "image/jpeg" });
+      await store.uploadPhoto("t1", file);
+
+      expect(store.error.value).toBe("Upload failed");
+    });
+
+    it("sets error without calling API when reject has no reason", async () => {
+      const store = useTicketsStore();
+
+      await store.reject("t1", "");
+
+      expect(apiMocks.rejectTicket).not.toHaveBeenCalled();
+      expect(store.error.value).toBe("Rejection reason is required");
+    });
+
+    it("sets error without calling API when reject reason is undefined", async () => {
+      const store = useTicketsStore();
+
+      await store.reject("t1");
+
+      expect(apiMocks.rejectTicket).not.toHaveBeenCalled();
+      expect(store.error.value).toBe("Rejection reason is required");
     });
   });
 });

@@ -81,4 +81,22 @@ describe("NavigationShell", () => {
 
     expect(wrapper.find("aside").exists()).toBe(false);
   });
+
+  it("shows operator menu entries (no Dashboard)", async () => {
+    useAuth().loginAsOperator();
+    const router = createMockRouter();
+    await router.push("/queue");
+    await router.isReady();
+
+    const wrapper = mount(NavigationShell, {
+      global: { plugins: [router] },
+    });
+
+    const text = wrapper.text();
+    expect(text).toContain("Queue");
+    expect(text).toContain("Approved Library");
+    expect(text).toContain("Partner Overview");
+    expect(text).not.toContain("Dashboard");
+    expect(text).not.toContain("My Tickets");
+  });
 });

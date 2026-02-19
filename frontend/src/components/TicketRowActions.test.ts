@@ -202,4 +202,119 @@ describe("TicketRowActions", () => {
 
     wrapper.unmount();
   });
+
+  it("shows Receive button and emits action on click", async () => {
+    const wrapper = mountActions({
+      ...baseTicket,
+      status: "Sent",
+      availableActions: ["receive"],
+    });
+
+    const btn = wrapper.findAll("button").find((b) => b.text() === "Receive");
+    expect(btn).toBeTruthy();
+    await btn!.trigger("click");
+
+    expect(wrapper.emitted("action")?.[0]).toEqual(["receive", "t1"]);
+    wrapper.unmount();
+  });
+
+  it("shows Start button and emits action on click", async () => {
+    const wrapper = mountActions({
+      ...baseTicket,
+      status: "Received",
+      availableActions: ["start"],
+    });
+
+    const btn = wrapper.findAll("button").find((b) => b.text() === "Start");
+    expect(btn).toBeTruthy();
+    await btn!.trigger("click");
+
+    expect(wrapper.emitted("action")?.[0]).toEqual(["start", "t1"]);
+    wrapper.unmount();
+  });
+
+  it("shows Complete button and emits action on click", async () => {
+    const wrapper = mountActions({
+      ...baseTicket,
+      status: "In Progress",
+      partnerPhotos: [
+        {
+          id: "p1",
+          label: "Photo",
+          fileName: "p1.jpg",
+          imageUrl: "/img/p1.jpg",
+          thumbnailUrl: "/thumb/p1.jpg",
+        },
+      ],
+      availableActions: ["complete"],
+    });
+
+    const btn = wrapper.findAll("button").find((b) => b.text() === "Complete");
+    expect(btn).toBeTruthy();
+    expect(btn!.attributes("disabled")).toBeUndefined();
+    await btn!.trigger("click");
+
+    expect(wrapper.emitted("action")?.[0]).toEqual(["complete", "t1"]);
+    wrapper.unmount();
+  });
+
+  it("disables Complete button when no partner photos uploaded", () => {
+    const wrapper = mountActions({
+      ...baseTicket,
+      status: "In Progress",
+      partnerPhotos: [],
+      availableActions: ["complete"],
+    });
+
+    const btn = wrapper.findAll("button").find((b) => b.text() === "Complete");
+    expect(btn).toBeTruthy();
+    expect(btn!.attributes("disabled")).toBeDefined();
+    wrapper.unmount();
+  });
+
+  it("emits approve action on Approve button click", async () => {
+    const wrapper = mountActions({
+      ...baseTicket,
+      status: "Completed",
+      availableActions: ["approve", "reject"],
+    });
+
+    const btn = wrapper.findAll("button").find((b) => b.text() === "Approve");
+    expect(btn).toBeTruthy();
+    await btn!.trigger("click");
+
+    expect(wrapper.emitted("action")?.[0]).toEqual(["approve", "t1"]);
+    wrapper.unmount();
+  });
+
+  it("closes reject modal without emitting when cancelled", async () => {
+    const wrapper = mountActions({
+      ...baseTicket,
+      status: "Completed",
+      availableActions: ["approve", "reject"],
+    });
+
+    // Open reject modal
+    const rejectButton = wrapper
+      .findAll("button")
+      .find((btn) => btn.text() === "Reject");
+    await rejectButton!.trigger("click");
+    await nextTick();
+
+    expect(wrapper.find(".reject-input").exists()).toBe(true);
+
+    // Enter a reason then close via the modal's close event
+    const input = wrapper.find(".reject-input");
+    await input.setValue("Some reason");
+
+    // Find and trigger the modal close (AppModal emits close)
+    const modal = wrapper.findComponent({ name: "AppModal" });
+    modal.vm.$emit("close");
+    await nextTick();
+
+    // Modal should be closed, no action emitted
+    expect(wrapper.find(".reject-input").exists()).toBe(false);
+    expect(wrapper.emitted("action")).toBeUndefined();
+    wrapper.unmount();
+  });
 });
