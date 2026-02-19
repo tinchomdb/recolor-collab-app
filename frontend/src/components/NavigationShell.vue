@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../composables/useAuth";
 import { useTheme } from "../composables/useTheme";
+import { useClickOutside } from "../composables/useClickOutside";
 import { Role } from "@shared/constants";
 import AppButton from "./AppButton.vue";
 import IconMenu from "./icons/IconMenu.vue";
@@ -15,6 +16,10 @@ const { role, partnerName, isLoggedIn, logout } = useAuth();
 const { theme, toggleTheme } = useTheme();
 
 const isMenuOpen = ref(false);
+const sidebarRef = ref<HTMLElement | null>(null);
+useClickOutside(sidebarRef, () => {
+  isMenuOpen.value = false;
+});
 
 interface NavItem {
   path: string;
@@ -91,6 +96,7 @@ function handleLogout() {
 <template>
   <aside
     v-if="isLoggedIn"
+    ref="sidebarRef"
     class="sidebar"
     :class="{ 'sidebar--mobile-open': isMenuOpen }"
   >
@@ -198,7 +204,9 @@ function handleLogout() {
 
 @media (max-width: 900px) {
   .sidebar {
+    position: relative;
     min-width: 100%;
+    z-index: 10;
   }
 
   .sidebar-toggle {
@@ -211,6 +219,15 @@ function handleLogout() {
 
   .sidebar--mobile-open .sidebar-nav {
     display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg-surface);
+    border-bottom: var(--border-default);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.15));
+    z-index: 10;
   }
 
   .sidebar-footer {
