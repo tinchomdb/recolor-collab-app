@@ -11,6 +11,7 @@ import {
   PARTNER_VISIBLE_STATUSES,
   QUEUE_COLUMNS,
   SORT_OPTIONS,
+  SORT_OPTIONS_WITHOUT_PARTNER,
 } from "../constants";
 
 // ── Shared helpers ────────────────────────────────────────────────────────
@@ -18,9 +19,7 @@ import {
 const toOptions = (values: readonly string[]) =>
   values.map((v) => ({ label: v, value: v }));
 
-const statusFilter = (
-  statuses: readonly string[],
-): FilterOptionDef => ({
+const statusFilter = (statuses: readonly string[]): FilterOptionDef => ({
   key: "status",
   label: "Status",
   options: toOptions(statuses),
@@ -73,10 +72,13 @@ export function buildQueueMeta(partners: string[]): ViewMeta {
 // ── Partner ticket list ───────────────────────────────────────────────────
 
 export function buildPartnerTicketListMeta(): ViewMeta {
-  return buildListMeta(
-    [statusFilter(PARTNER_VISIBLE_STATUSES), PRIORITY_FILTER],
-    PARTNER_TICKET_COLUMNS,
-  );
+  return {
+    ...buildListMeta(
+      [statusFilter(PARTNER_VISIBLE_STATUSES), PRIORITY_FILTER],
+      PARTNER_TICKET_COLUMNS,
+    ),
+    sortOptions: SORT_OPTIONS_WITHOUT_PARTNER,
+  };
 }
 
 // ── Approved views ────────────────────────────────────────────────────────

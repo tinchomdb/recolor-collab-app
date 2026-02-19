@@ -19,6 +19,10 @@ export const SORT_OPTIONS = [
   { label: "Status Descending", value: "status:desc" },
 ];
 
+export const SORT_OPTIONS_WITHOUT_PARTNER = SORT_OPTIONS.filter(
+  (o) => !o.value.startsWith("partner:"),
+);
+
 // ── Sort Comparators ──────────────────────────────────────────────────────────
 
 export const SORT_COMPARATORS: Readonly<
