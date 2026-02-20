@@ -4,6 +4,28 @@ A full-stack application for managing recolour ticket workflows. It tracks ticke
 
 ---
 
+### Getting Started
+
+```bash
+# Install dependencies
+npm install
+cd backend && npm install
+cd ../frontend && npm install
+cd ..
+
+# Start the backend (default port 3001)
+npm run dev:backend
+
+# Start the frontend (Vite dev server)
+npm run dev:frontend
+```
+
+Run all tests:
+
+```bash
+npm test
+```
+
 ## Features
 
 ### Ticket Creation
@@ -215,28 +237,6 @@ The `shared/` directory contains TypeScript types and constants imported by both
 | Component unit tests  | Vitest + Vue Test Utils | `frontend/src/components/*.test.ts`   |
 | Store unit tests      | Vitest                  | `frontend/src/stores/*.test.ts`       |
 | HTTP utility tests    | Vitest                  | `frontend/src/utils/api/http.test.ts` |
-
-Run all tests:
-
-```bash
-npm test
-```
-
-### Getting Started
-
-```bash
-# Install dependencies
-npm install
-cd backend && npm install
-cd ../frontend && npm install
-cd ..
-
-# Start the backend (default port 3001)
-npm run dev:backend
-
-# Start the frontend (Vite dev server)
-npm run dev:frontend
-```
 
 ---
 
